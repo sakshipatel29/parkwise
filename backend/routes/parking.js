@@ -23,10 +23,23 @@ router.get("/predict", async (req, res) => {
     return res.json({ predictedSpots: 0 });
   }
 
-  const avg =
-    data.reduce((sum, item) => sum + item.availableSpots, 0) / data.length;
+  const currentHour = new Date().getHours();
 
-  res.json({ predictedSpots: Math.round(avg) });
+  const filtered = data.filter((item) => {
+    const hour = new Date(item.timestamp).getHours();
+    return hour === currentHour;
+  });
+
+  const dataset = filtered.length > 0 ? filtered : data;
+
+  const avg =
+    dataset.reduce((sum, item) => sum + item.availableSpots, 0) /
+    dataset.length;
+
+  res.json({
+    predictedSpots: Math.round(avg),
+    basedOn: filtered.length > 0 ? "current hour data" : "all data",
+  });
 });
 
 module.exports = router;
